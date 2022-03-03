@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<agenda xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="agenda.xsd">
+    <contact type="personne">
+        <nom>Doe</nom>
+        <prenom>John</prenom>
+        <phone>0612345678</phone>
+        <adresse>
+            <rue>Rue de Paris</rue>
+            <numero>1</numero>
+            <ville>Paris</ville>
+            <postalcode>75000</postalcode>
+            <pays>France</pays>
+        </adresse>
+    </contact>
+</agenda>

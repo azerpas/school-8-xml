@@ -1,0 +1,30 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="agenda">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="contact">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element type="xs:string" name="nom"/>
+                            <xs:element type="xs:string" name="prenom"/>
+                            <xs:element type="xs:int" name="phone"/>
+                            <xs:element name="adresse">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element type="xs:string" name="rue"/>
+                                        <xs:element type="xs:int" name="numero"/>
+                                        <xs:element type="xs:string" name="ville"/>
+                                        <xs:element type="xs:int" name="postalcode"/>
+                                        <xs:element type="xs:string" name="cedex" minOccurs="0"/>
+                                        <xs:element type="xs:string" name="pays"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:attribute type="xs:string" name="type"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
