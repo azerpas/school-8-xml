@@ -1,0 +1,16 @@
+o Tous les membres de la structure JSON
+*
+o Les auteurs de tous les livres
+$.store.book[*].author
+o Tous les livres
+$.store.book[*].title
+o Les prix de tous les livres
+$.store.book[*].price
+o Le 1er livre
+$.store.book[0]
+o Les deux derniers livres
+$.store.book[-2:]
+o Tous les livres avec le numéro isbn
+$.store.book[?(@.isbn)]
+o Tous les livres plus chers que 10
+$.store.book[?(@.price < 10)].title

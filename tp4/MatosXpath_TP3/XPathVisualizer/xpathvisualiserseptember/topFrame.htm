@@ -1,0 +1,273 @@
+<HTML>
+<HEAD>
+<script src="XSLTKeys.js"></script>
+<script src="XSLTVariables.js"></script>
+
+<SCRIPT>
+var initialXPathExpr   = '//*';
+var initialExpression  = '<option>' + initialXPathExpr + '</option>';
+var enteredExpressions = initialExpression;
+var arrFileEnteredExpressions = new Array(60);
+var arrFileExpressions = new Array(60);
+var arrFileVariables   = new Array(60);
+var arrFileKeys        = new Array(60);
+var curFileExpressions = null;
+var curFileEnteredExpressions = null;
+var curFileExistingVariables  = new Array(0);
+var curFileExistingKeys = new Array(0);
+var numEnteredExpressions = 0;
+var theFileName = '';
+var filenameChanged = 0;
+var expressionChanged = 0;
+
+var theStylesheet;  // the MSXMLDOMDocument object (style)
+var nodeStylesheet; // the xsl:stylesheet node
+var nodeStylesheetParam; // one of the permanent gloal xsl:param nodes
+
+var nothingLoaded = 1;
+function b_onload()
+{
+	top.viewNavigationHTML = document.all("docNavigation").innerHTML;
+	theStylesheet = top.style;
+	nodeStylesheet = top.objStylesheetElement;
+	nodeStylesheetParam = top.objStylesheetParam;
+}
+
+function processExpression()
+{
+	if(filenameChanged)
+		loadFile();
+	else
+	{
+		//alert("processExpression() Expression is: " + qryIn.value);
+		top.processExpression(qryIn.value);
+	}
+}
+
+function fnTrapKUFile()
+{
+	filenameChanged =1;
+	if(event.keyCode == 13)
+	{
+		if(oFile.value.length == 0)
+			alert("No Filename specified... Try again");
+		else
+			loadFile();
+	}
+}
+
+function loadFile()
+{
+	onchangeFile();
+	top.loadFile();
+	filenameChanged =0;
+	theFileName=oFile.value;
+	
+	if(!nothingLoaded)
+	{
+		removeXSLTVariables(curFileExistingVariables);
+		removeXSLTKeys(curFileExistingKeys);
+	}
+		
+	if(!arrFileExpressions[theFileName])
+	{
+		arrFileExpressions[theFileName] = new Array(1);
+		arrFileEnteredExpressions[theFileName]=new Array(1);
+		
+		curFileEnteredExpressions = arrFileEnteredExpressions[theFileName];
+		curFileEnteredExpressions[0] = initialXPathExpr;
+		
+		arrFileVariables[theFileName] = new Array(0);
+		arrFileKeys[theFileName] = new Array(0);
+	}
+	curFileEnteredExpressions = arrFileEnteredExpressions[theFileName];	
+	numEnteredExpressions = curFileEnteredExpressions.length - 1;
+	curFileExpressions = arrFileExpressions[theFileName];
+	curFileExpressions[initialXPathExpr] = 1;
+	
+	curFileExistingVariables = arrFileVariables[theFileName];
+	curFileExistingKeys      = arrFileKeys[theFileName];
+	
+	restoreXSLTVariables(curFileExistingVariables);
+	restoreXSLTKeys(curFileExistingKeys);
+	
+	
+	nothingLoaded = 0;
+}
+
+function onchangeFile()
+{
+	filenameChanged =1;
+	if(!expressionChanged)
+		qryIn.value=initialXPathExpr;
+}
+
+function fnTrapKUSelect()
+{ 
+	if(event.keyCode == 13)
+	{
+		if(qryIn.value.length == 0)
+			alert("No XPath Expression specified... Try again");
+		else
+			processExpression();//top.doQuery(qryIn.value);
+	}
+}
+
+</SCRIPT>
+<script language="JavaScript">
+function btnCombo_Click(){
+if(nothingLoaded)
+	return;
+
+if(filenameChanged)
+	loadFile();
+
+var vArguments = curFileEnteredExpressions;
+var sFeatures="dialogHeight: " + 400 + "px;" + "dialogWidth: " + 800 + "px;";
+var vReturnValue = window.showModalDialog("expressions.htm", vArguments, sFeatures);
+
+qryIn.value = vReturnValue;
+}
+
+function addOption(optionValue, bAddInFront){
+	if(bAddInFront)
+	{
+		var i;
+		for(i = numEnteredExpressions; i >= 0; i--)
+		{
+			curFileEnteredExpressions[i+1] = curFileEnteredExpressions[i];
+		}
+		curFileEnteredExpressions[0] = optionValue;
+	}
+	else
+	{
+		curFileEnteredExpressions[numEnteredExpressions + 1] = optionValue;
+	}
+	curFileExpressions[optionValue] = 1;
+	numEnteredExpressions++;
+}
+
+
+function addCheckForNewOptionValues(){
+
+	if( qryIn.value.length ==0) return;
+	
+	if(filenameChanged)
+		loadFile();
+			
+	var userValue = qryIn.value;
+	
+	if(curFileExpressions != null)
+		if(!curFileExpressions[userValue])
+		{
+			curFileExpressions[userValue] = 1;
+			 addOption(userValue,1);
+		 }
+	
+}
+
+function Combo_OnKeydown(){
+	expressionChanged = 1;
+	if(event.keyCode == 13)
+	{
+		if(qryIn.value.length == 0)
+			alert("No XPath Expression specified... Try again");
+		else
+		{
+			if(filenameChanged)
+				loadFile();
+			
+			expressionChanged = 0;
+			theFileName=oFile.value;
+			addCheckForNewOptionValues();
+			processExpression();//top.doQuery(qryIn.value);
+		}
+
+	}
+
+}
+var xsltNamespaceURI = "http://www.w3.org/1999/XSL/Transform";
+
+function processVariables()
+{
+	if(nothingLoaded)
+		return;
+	
+	var nodeStylesheetParam = top.objStylesheetParam
+	var nodeVariable;
+
+	var vArguments = new Array(5);
+	vArguments[0] = curFileEnteredExpressions;
+	vArguments[1] = nodeStylesheet;
+	vArguments[2] = nodeStylesheetParam;
+	vArguments[3] = curFileExistingVariables;
+	vArguments[4] = theStylesheet;
+	
+	var sFeatures="dialogHeight: " + 400 + "px;" + "dialogWidth: " + 800 + "px;";
+	var vReturnValue = window.showModalDialog("variables.htm", vArguments, sFeatures);
+
+	if(vReturnValue != null)
+		qryIn.value += "$" + vReturnValue;
+
+}  
+
+function processKeys()
+{
+	var vArguments = new Array(4);
+	vArguments[0] = nodeStylesheet;
+	vArguments[1] = nodeStylesheetParam;
+	vArguments[2] = curFileExistingKeys;
+	vArguments[3] = theStylesheet;
+
+	var sFeatures="dialogHeight: " + 400 + "px;" + "dialogWidth: " + 800 + "px;";
+	var vReturnValue = window.showModalDialog("keys.htm", vArguments, sFeatures);
+
+	if(vReturnValue != null)
+		qryIn.value += vReturnValue;
+
+}    
+</script>
+<script src="XSLTVariables.js">
+</script>
+
+
+</HEAD>
+
+<BODY background="back42.jpg" onload="b_onload()">
+<INPUT TYPE="file" NAME="oFile"  size="48"  onchange="onchangeFile()" onkeyup="fnTrapKUFile()">
+<INPUT TYPE="button" NAME="btnLoad" VALUE="Process File" onClick="loadFile()">
+
+
+
+
+
+<!-- 
+<INPUT ID=qryIn VALUE="//*" SIZE=60 TYPE=TEXT onkeyup="fnTrapKUSelect()">
+-->
+<DIV class=heading>XPath expression: </DIV>
+<input id="qryIn" 
+	onblur="addCheckForNewOptionValues()"  
+	 onkeydown="Combo_OnKeydown()" size="48">
+</input>
+
+<img   align="baseline"  hspace="0" src="combo.jpg" onclick="btnCombo_Click();"/>
+<INPUT TYPE="BUTTON" VALUE="Select Nodes"   onClick="processExpression()" 
+  id=BUTTON1 name=btnSelect>
+<INPUT TYPE="BUTTON" VALUE="Variables"   onClick="processVariables()" 
+  id=BUTTON2 name=btnVariables>
+<INPUT TYPE="BUTTON" VALUE="Keys"   onClick="processKeys()" 
+  id=BUTTON3 name=btnKeys>
+
+<div id="docNavigation">
+	<A href="javascript:top.firstSelection()"><IMG height=18 alt="<<" src="arrow_beg.gif" 
+	width=18 align=absMiddle border=0></A>   
+	<A href="javascript:top.prevSelection()"><IMG height=18 alt="<" src="arrow_prev.gif" 
+	width=18 align=absMiddle border=0></A>   
+	<A href="javascript:top.nextSelection()"><IMG height=18 alt=">" src="arrow_next.gif" 
+	width=18 align=absMiddle border=0></A>   
+	<A href="javascript:top.lastSelection()"><IMG height=18 alt=">>" src="arrow_end.gif" 
+	width=18 align=absMiddle border=0></A>   
+</div>
+
+</BODY>
+</HTML>

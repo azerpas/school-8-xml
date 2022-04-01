@@ -1,0 +1,388 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+  <TITLE>XPath Visualiser Ver.1.4</TITLE>
+  <SCRIPT>
+  var source = new ActiveXObject("MSXML2.DOMDocument");
+  var style  = new ActiveXObject("MSXML2.DOMDocument");
+  
+  var strNamespace = new String("");
+  var listNameSpaces = "";
+  var objNameSpaces   = null; 
+  
+  var currentSelection = -1;
+  var numSelected      =  0;
+  var counterHeading   = "";
+  
+  var curSelClassName  = "";
+  var objCurSelected   = null;
+  var objStylesheetElement = null;
+  
+  var selVerticalOffset= 4;
+
+  var errNotNodeSet = "Reference to variable or parameter 'selectedNodes' must evaluate to a node list."+"\r\n";
+  
+  var viewNavigationHTML;
+  
+  var isScalar = "0";
+  var theScalarExpression = "@comment()";
+
+  
+  style.async=false;
+  source.async=false;
+  
+  style.load("myDefaultss80.xsl");
+  var objStylesheetElement = style.selectSingleNode("/xsl:stylesheet");
+  var objStylesheetParam   = style.selectSingleNode("/xsl:stylesheet/xsl:param[@name='selectedNodes']");
+  var styAttribs = objStylesheetElement.attributes;
+  
+  var numStyAtrribs = styAttribs.length;
+  var numStlyleNamespaces = 0;
+  
+  var styNamespaceNames = new Array(numStyAtrribs);
+  var styNamespaceURIs = new Array(numStyAtrribs);
+  
+  var i;
+  
+  
+  for(i = 0; i < numStyAtrribs; i++)
+  {
+	var anAttrib = styAttribs.item(i);
+	var attrName = anAttrib.name;
+	
+	if(attrName.substr(0, 6) == "xmlns:")
+	{
+		styNamespaceNames[attrName] = 1;
+		styNamespaceURIs[anAttrib.nodeValue] = 1;
+		
+		numStlyleNamespaces++;
+	}
+  }
+
+  </script>
+  <STYLE>
+    BODY {font-family:Arial}
+    .heading {font-family:"Arial Black"}
+    .sample {cursor:hand; font:9pt Courier; text-decoration:underline; text-indent:-1em; margin-left:1em}
+    .note {font-size:x-small; font-style:italic}
+  </STYLE>
+</HEAD>
+<SCRIPT>
+
+  function loadFile()
+  {
+	var fileName = topFrame.oFile.value;
+	
+	source.load(fileName);
+    if(source.parseError.errorCode != 0)
+	{
+	    //error found so show error message and stop
+	    ShowError(source);
+	    return;
+	}
+
+  	//alert("xml loaded");
+	source.setProperty("SelectionLanguage", "XPath");
+
+	removeNAmespaces();
+	setNAmespaces();
+	
+	var firstQuery = topFrame.qryIn.value
+	if(!firstQuery)
+		firstQuery = "/"
+
+	processExpression(firstQuery)
+	return;
+	var result = source.transformNode(style.documentElement);
+	//alert("xml transformed");
+	  viewFrame.document.clear();
+	  viewFrame.document.body.innerHTML="";
+	  viewFrame.document.close;
+	  viewFrame.document.write(result);
+	  viewFrame.document.close;
+   }
+
+  function processExpression(theQuery)
+  {
+	currentSelection = -1;
+	objCurSelected   = null;
+	isScalar = "0";
+	doQuery(theQuery);
+  }
+
+  function doQuery(theQuery)
+  {
+	  //alert('"'+theQuery+'"');
+	if(!theQuery)
+	{
+		alert("XPath Expression missing!");
+		return;
+	}
+	//else
+	  if(!source.documentElement)
+		  loadFile()
+    if(source.parseError.errorCode != 0)
+	{
+	    return;
+	}
+	  
+	  //var q = source.documentElement.selectNodes(theQuery);
+	  var p = style.selectSingleNode("/xsl:stylesheet/xsl:param[@name='selectedNodes']");
+	  p.setAttribute("select", theQuery);
+	  var q = style.selectSingleNode("/xsl:stylesheet/xsl:param[@name='isScalar']");
+	  q.setAttribute("select", isScalar);
+	  var scalarNode = style.selectSingleNode("/xsl:stylesheet/xsl:param[@name='scalarExpr']");
+	  
+	  if(isScalar == "1")
+		  scalarNode.setAttribute("select", theScalarExpression);
+	  
+      //style.setProperty("SelectionLanguage", "XPath");
+	  //alert(q.length);
+
+	  viewFrame.document.clear();
+	  viewFrame.document.body.innerHTML="";
+	  viewFrame.document.close;
+
+	  try
+	  {
+	  var result = source.transformNode(style.documentElement);
+	  viewFrame.document.write(result);
+	  viewFrame.document.close();
+
+	  var totalSelected  = viewFrame.document.all("cntMatches").innerText;
+	  var actualSelected;
+	  if(totalSelected > 0)
+	  {
+		  actualSelected = viewFrame.document.all("Selected").length;
+		  if(actualSelected == null)
+			  actualSelected = 1;
+	  }
+	  else
+		  actualSelected = 0;
+		  
+	  numSelected = actualSelected;
+	  counterHeading = " of "+ actualSelected + "/" + totalSelected + " matches";
+
+	  showCounter();
+	  
+	  if(isScalar == "1")
+	  {
+		var exprResult = viewFrame.document.all("theBody");
+		
+		var strScalarResult = exprResult.attributes.item("title").value;
+		if(!strScalarResult)
+			alert(exprResult.attributes.item("title"));
+		else
+			alert(strScalarResult);
+
+		exprResult.title = "";
+	  }
+
+	  }
+	  catch(transException)
+	  {
+		  var strDescription = transException.description;
+		  //alert(errNotNodeSet);
+		  if(strDescription == errNotNodeSet)
+		  //if(transException.number == -2147467259)
+		  {
+			  doScalarQuery(theQuery);
+		  }
+		  else
+			  alert("Error No.:" + transException.number + "\n" 
+			  + transException.name + ': "'+strDescription+'"');
+	  }
+  }
+
+  function doScalarQuery(aQuery)
+  {
+	//alert("Scalar Query");
+	isScalar="1";
+	theScalarExpression = aQuery;
+	
+	doQuery("@comment()");
+	
+	isScalar="0";
+
+  }
+  
+  function loadQuery()
+  {
+  	var q = topFrame.window.event.srcElement.innerText;
+  	qryIn.value = q;
+	if(!q)
+	{
+		alert("XPath Expression missing!");
+	}
+  	else
+		doQuery(q);
+  }
+  
+	function scrollToShow()
+	{
+		if(objCurSelected)
+			objCurSelected.className = curSelClassName;
+		var objSelected = viewFrame.document.all.item("Selected", currentSelection);
+		curSelClassName = objSelected.className;
+		objCurSelected   = objSelected;
+		objSelected.className="cse"
+		objSelected.scrollIntoView(false);
+		viewFrame.document.body.doScroll("pageLeft");
+		
+		var i;
+		for(i = 0; i < selVerticalOffset; i++)
+			viewFrame.document.body.doScroll("down");
+	}
+	
+	function nextSelection()
+	{
+		if(currentSelection < numSelected - 1)
+		{
+			currentSelection++;
+			scrollToShow();
+			showCounter();
+		}
+	}
+
+	function prevSelection()
+	{
+		//alert("Prev Selection");
+		if(currentSelection > 0)
+		{
+			currentSelection--;
+			scrollToShow();
+			showCounter();
+		}
+	}
+
+	function firstSelection()
+	{
+		currentSelection = 0;
+		scrollToShow();
+		showCounter();
+	}
+
+	function lastSelection()
+	{
+		currentSelection = numSelected - 1;
+		scrollToShow();
+		showCounter();
+	}
+
+  function showCounter()
+  {
+	  topFrame.document.all("docNavigation").innerHTML = viewNavigationHTML
+		   +" " + (currentSelection+1) + counterHeading;
+  }
+	  
+  function ShowError(objDoc)
+  {
+    //create and display error message
+    var strError;
+    strError = "Invalid XML file !<BR />" 
+             + "File URL: " + objDoc.parseError.url + "<BR />" 
+             + "Line No.: " + objDoc.parseError.line + "<BR />" 
+             + "Character: " + objDoc.parseError.linepos + "<BR />" 
+             + "File Position: " + objDoc.parseError.filepos + "<BR />" 
+             + "Source Text: " + objDoc.parseError.srcText + "<BR />" 
+             + "Error Code: " + objDoc.parseError.errorCode + "<BR />" 
+             + "Description: " + objDoc.parseError.reason;
+
+	  viewFrame.document.clear();
+	  viewFrame.document.body.innerHTML="";
+	  viewFrame.document.close;
+	  viewFrame.document.write(strError);
+	//alert(strError);
+  }  
+
+
+function removeNAmespaces()
+{
+	if(objNameSpaces == null)
+		return;
+
+	var numNamespaces  = objNameSpaces.length - 1;
+    strNamespace = "";
+	if(numNamespaces >= 0)
+	{
+		var oNamedNodeMap = objStylesheetElement.attributes;
+		var arrayNamespaces = new Array(numNamespaces);
+		for(i = 0; i <= numNamespaces; i++)
+		{
+			var objNamespace = objNameSpaces.item(i);
+			strNamespace = objNamespace.xml;
+
+
+			if( (styNamespaceNames[objNamespace.name] != 1)
+				&& (styNamespaceURIs[objNamespace.nodeValue] != 1) )
+
+				if(strNamespace.substr(0, 9) != "xmlns:xml" && !arrayNamespaces[strNamespace])
+				{
+					arrayNamespaces[strNamespace] = 1;
+					var attrName = objNamespace.name;
+					//alert('Removing namespace "' + attrName + '"');
+					objStylesheetElement.removeAttribute(attrName);
+					//oNamedNodeMap.removeNamedItem(name);
+					//listNameSpaces += strNamespace;
+					
+					//if(i < numNamespaces)
+						//listNameSpaces += " ";
+				}
+		}
+		
+	}
+		//alert(listNameSpaces);
+		//source.setProperty("SelectionNamespaces", listNameSpaces);
+		objNameSpaces == null;
+		return;
+}	
+
+
+
+function setNAmespaces()
+{
+	var i;
+	objNameSpaces = source.documentElement.selectNodes("//namespace::*");
+	//listNameSpaces = "";
+	var numNamespaces  = objNameSpaces.length - 1;
+    strNamespace = "";
+	if(numNamespaces >= 0)
+	{
+		var oNamedNodeMap = objStylesheetElement.attributes;
+		var arrayNamespaces = new Array(numNamespaces);
+		for(i = 0; i <= numNamespaces; i++)
+		{
+			var objNamespace = objNameSpaces.item(i);
+			strNamespace = objNamespace.xml;
+			
+			if( (styNamespaceNames[objNamespace.name] != 1)
+				&& (styNamespaceURIs[objNamespace.nodeValue] != 1) )
+
+				if(strNamespace.substr(0, 9) != "xmlns:xml" && !arrayNamespaces[strNamespace])
+				{
+					arrayNamespaces[strNamespace] = 1;
+					var attrName = objNamespace.name;
+					var objNewNode=style.createNode(2, attrName, "");
+					objNewNode.nodeValue = objNamespace.nodeValue;
+					
+					oNamedNodeMap.setNamedItem(objNewNode);
+					//listNameSpaces += strNamespace;
+					
+					//if(i < numNamespaces)
+						//listNameSpaces += " ";
+				}
+		}
+		
+	}
+		//alert(listNameSpaces);
+		//source.setProperty("SelectionNamespaces", listNameSpaces);
+		return;
+}
+
+</SCRIPT>
+
+<!-- frames -->
+<frameset  rows="24%,*">
+    <frame name="topFrame" src="topFrame.htm" marginwidth="10" marginheight="10" scrolling="no" frameborder="1">
+    <frame name="viewFrame" src="viewFrame.htm" marginwidth="10" marginheight="10" scrolling="auto" frameborder="0">
+</frameset>

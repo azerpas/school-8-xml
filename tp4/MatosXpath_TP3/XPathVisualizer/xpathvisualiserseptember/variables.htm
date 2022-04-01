@@ -1,0 +1,306 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<link  rel="stylesheet" type="text/css" href="table.css" > 
+	<title>Manage XSLT Variables</title>
+</head>
+<script src="table.js"></script>
+<script src="XSLTVariables.js"></script>
+<script>
+	var theArgs = window.dialogArguments;
+	window.returnValue = null;
+	
+	var curFileEnteredExpressions = theArgs[0];
+	var nodeStylesheet      = theArgs[1];
+	var nodeStylesheetParam = theArgs[2];
+	var ExistingVariables   = theArgs[3];
+	var theStylesheet       = theArgs[4];
+	var numVariables = ExistingVariables.length;
+
+	var theTable = document.all("theTable");
+	var i;
+	
+	function init()
+	{
+		i = numVariables - 1;
+		
+		if(i < 0)
+			doInsert();
+		else
+		{
+			theTable = document.all("theTable");
+			while(i >= 0)
+			{
+				fillRow(i);
+				i--;
+			}
+		}
+		
+		
+	}
+	
+	function fillRow(i)
+	{
+		var varEntry = ExistingVariables[i];
+		var idx   = varEntry.indexOf(theDelim);
+		var name  = varEntry.substr(0, idx);
+		var value = varEntry.substr(idx + 1);
+		theTable.insertRow();
+		
+		var newRow = theTable.rows(theTable.rows.length - 1);
+		
+		var newCell = newRow.insertCell();
+		newCell.innerText = name;
+		newCell = newRow.insertCell();
+		newCell.innerText = value;
+		
+	}
+	
+
+	function doSelect()
+	{
+		if(selectedRow)
+		{
+			window.returnValue = selectedRow.cells(0).innerText;
+			//alert(selectedRow.rowIndex + " row selected.")
+			//alert("varName: " + selectedRow.cells(0).innerText 
+			//+ ", Expression: " + selectedRow.cells(1).innerText)
+		}
+		
+		window.close();
+	}
+	
+	function doModify()
+	{
+		if(!selectedRow)
+		{
+			alert("No row's been selected for update!");
+			return;
+		}
+		
+		var varName  = selectedRow.cells(0).innerText;
+		var varValue = selectedRow.cells(1).innerText;
+		
+	var theArgs = new Array(5);
+	theArgs[0] = ExistingVariables;
+	theArgs[1] = "existing";		//Mode
+	theArgs[2] = varName;
+	theArgs[3] = varValue;
+	theArgs[4] = curFileEnteredExpressions;
+var sFeatures="dialogHeight: " + 200 + "px;" + "dialogWidth: " + 900 + "px;";
+var vReturnValue = window.showModalDialog("newVariable.htm", theArgs,
+											 sFeatures);
+		
+		if(vReturnValue == "")
+			return;
+
+		var idx   = vReturnValue.indexOf(theDelim);
+		var newName  = vReturnValue.substr(0, idx);
+		var idx2   = vReturnValue.indexOf(theDelim, idx + 1);
+		var newValue = vReturnValue.substr(idx + 1, idx2 - idx - 1);
+		var strModified = vReturnValue.substr(idx2 + 1);
+		var bModified = (strModified != "0");
+		var theName;
+		var fullReplace = (newName != varName && !bModified);
+		
+		if(bModified && !fullReplace)
+			doDelete();
+		
+		if(fullReplace)
+		{
+			modifyXSLTVariable(varName, newName, newValue);
+			theName = varName;
+		}
+		else
+		{											
+			addXSLTVariable(newName, newValue, true);
+			theName = newName;
+		}
+
+		var table = document.all("theTable");
+		
+		var i;
+		var theRows = table.rows;
+		for(i = 1; i <  theRows.length; i++)
+			if(theRows[i].cells(0).innerText == theName)
+			{
+				theRows[i].cells(1).innerText = newValue;
+				
+				if(fullReplace)
+					theRows[i].cells(0).innerText = newName;
+
+				break;
+			}
+		
+		
+		if(bModified)
+			updateValue(newName, newValue)
+		else
+			replaceVariable(varName, newName, newValue);
+	}
+	
+	function doDelete()
+	{
+		if(!selectedRow)
+			alert("No row's been selected for deletion!")
+		else
+		{
+			var table   = document.all("theTable");
+			var varName = selectedRow.cells(0).innerText;
+			var i;
+			
+			for(i = 0; i < numVariables; i++)
+			{
+				var varEntry = ExistingVariables[i];
+				var idx   = varEntry.indexOf(theDelim);
+				
+				if(varName == varEntry.substr(0, idx))
+				{
+					numVariables--;
+					while(i < numVariables)
+					{
+						ExistingVariables[i] = ExistingVariables[i+1];
+						i++;
+					}
+					
+					ExistingVariables[numVariables] = null;
+					ExistingVariables.length--;
+					break;
+				}
+				
+			}
+
+			table.deleteRow(selectedRow.rowIndex);
+			selectedRow = null;
+			
+			deleteXSLTVariable(varName);
+		}
+	}
+	
+
+	function doInsert()
+	{
+	var theArgs = new Array(5);
+	theArgs[0] = ExistingVariables;
+	theArgs[1] = "new";		//Mode
+	theArgs[2] = "";
+	theArgs[3] = "";
+	theArgs[4] = curFileEnteredExpressions;
+var sFeatures="dialogHeight: " + 200 + "px;" + "dialogWidth: " + 900 + "px;";
+var vReturnValue = window.showModalDialog("newVariable.htm", theArgs,
+											 sFeatures);
+		
+		if(vReturnValue == "")
+			return;
+		
+		var idx   = vReturnValue.indexOf(theDelim);
+		var newName  = vReturnValue.substr(0, idx);
+		var idx2   = vReturnValue.indexOf(theDelim, idx + 1);
+		var newValue = vReturnValue.substr(idx + 1, idx2 - idx - 1);
+		var strModified = vReturnValue.substr(idx2 + 1);
+		var bModified = (strModified != "0");
+														
+		//alert("strModified is: " + strModified);
+		//alert("bModified is: " + bModified);
+		
+		addXSLTVariable(newName, newValue, bModified);
+		
+		var table = document.all("theTable");
+		if(!bModified)
+		{
+			table.insertRow(1);
+			var newRow = table.rows(1);
+			
+			var newCell = newRow.insertCell();
+			newCell.innerText = newName;
+			newCell = newRow.insertCell();
+			newCell.innerText = newValue;
+			
+			ExistingVariables[numVariables] = vReturnValue.substr(0, idx2);
+			numVariables++;
+		}
+		else //modify the table row
+		{
+			var i;
+			var theRows = table.rows;
+			for(i = 1; i <  theRows.length; i++)
+				if(theRows[i].cells(0).innerText == newName)
+				{
+					theRows[i].cells(1).innerText = newValue;
+					break;
+				}
+			
+			updateValue(newName, newValue);
+		}
+
+	}
+	
+	function updateValue(name, value)
+	{
+		//alert("In updateValue()");
+		var name1 = name + theDelim; //padded name
+		var name1Length = name1.length;
+		var i;
+		
+		for(i = 0; i < ExistingVariables.length; i++)
+		{
+			var thisEntry = ExistingVariables[i];
+			if(name1 == thisEntry.substr(0, name1Length))
+			{
+				ExistingVariables[i] = name1 + value;
+				//alert("updated Entry: " + thisEntry);
+			}
+		}
+	}
+	
+	function replaceVariable(oldName, newName, newValue)
+	{
+		var name1 = oldName + theDelim; //padded name
+		var name1Length = name1.length;
+		var i;
+		
+		for(i = 0; i < ExistingVariables.length; i++)
+		{
+			var thisEntry = ExistingVariables[i];
+			if(name1 == thisEntry.substr(0, name1Length))
+			{
+				ExistingVariables[i] = newName + theDelim + newValue;
+			}
+		}
+	}
+	
+	function doDblClick()
+	{
+		if(selectedRow)
+			doSelect();
+	}
+	
+
+</script>
+<script FOR = document EVENT = onkeyup>
+	if(event.keyCode != 13)
+		return;
+	if(!selectedRow)
+		alert("No row's been selected!")
+	else
+		doSelect();
+</script> 
+
+<body onload="init()">
+<center>
+<table ID="theTable" ONSELECTSTART="return false" ONMOUSEOVER="checkHighlight(true)"
+ONMOUSEOUT="checkHighlight(false)" onclick="checkSelected()" ondblclick="doDblClick()">
+	<col/><col/>
+	<thead><tr><th>Name</th><th>Expression</th></tr></thead>
+	<tbody>
+	</tbody>
+</table>
+<hr/>
+<input type="Button" value="OK" onclick="doSelect()">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="Button" value="New" onclick="doInsert()">
+<input type="Button" value="Modify" onclick="doModify()">
+<input type="Button" value="Delete" onclick="doDelete()">
+</center>
+</body>
+</html>

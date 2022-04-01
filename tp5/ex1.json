@@ -1,0 +1,47 @@
+[
+	{
+		"id": 1,
+		"nom": "Le Roy",
+		"prenom": "Frédric",
+		"dateNaissance": "16/12/98",
+		"lieuNaissance": "Paris",
+		"adresse": {
+			"numRue": 1,
+			"nomRue": "Boulevard Cappucine",
+			"codePostal": 75002,
+			"ville": "Paris"
+		},
+		"mail": "fredlr@gmail.com",
+		"coursSuivis": ["francais", "anglais"]
+	},
+	{
+		"id": 2,
+		"nom": "Dupont",
+		"prenom": "Julie",
+		"dateNaissance": "01/03/00",
+		"lieuNaissance": "Lille",
+		"adresse": {
+			"numRue": 10,
+			"nomRue": "Rue des Lillas",
+			"codePostal": 75010,
+			"ville": "Paris"
+		},
+		"mail": "juliedupont3@gmail.com",
+		"coursSuivis": ["francais", "anglais", "mathematiques", "histoire"]
+	},
+	{
+		"id": 3,
+		"nom": "Gros",
+		"prenom": "Pauline",
+		"dateNaissance": "12/10/00",
+		"lieuNaissance": "Brest",
+		"adresse": {
+			"numRue": 10,
+			"nomRue": "Rue de l'Arbre",
+			"codePostal": 75010,
+			"ville": "Paris"
+		},
+		"mail": "gros-paulinep@gmail.com",
+		"coursSuivis": ["francais", "anglais", "mathematiques", "histoire"]
+	}
+]

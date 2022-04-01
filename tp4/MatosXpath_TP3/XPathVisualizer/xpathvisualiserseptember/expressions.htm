@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<title>Select an XPath Expression:</title>
+<script>
+function fillList()
+{
+	var arrFiller = window.dialogArguments;
+	var htmlOptions = "";
+	var i;
+	
+	for(i = 0; i < arrFiller.length; i++)
+	{
+		htmlOptions += "<option>" + arrFiller[i] + "</option>";
+	}
+	theList.innerHTML = '<select id="theSelect" size="15" '  
+	//+ 'onchange="opener.selectedExpression=this.options' 
+	//+'[this.selectedIndex].value" 
+	+ '>' + htmlOptions + '</select>';
+	theSelect.selectedIndex = 0;
+}
+
+function onCloseMe()
+{
+window.close();
+}
+</script>
+<SCRIPT FOR=window EVENT=onunload>
+window.returnValue=theSelect.options[theSelect.selectedIndex].text;
+</SCRIPT>
+
+
+</head>
+
+<body onload="fillList()" bgcolor="#339999" >
+<center>
+<div id="theList"></div>
+
+<p><input type="Button"  value="Done" onclick="onCloseMe()"/></p>
+</center>
+
+
+</body>
+</html>

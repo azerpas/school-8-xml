@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<?xml:stylesheet type="text/xsl" href="./identity.xsl" ?>
+<!-- <?xml:stylesheet type="text/xsl" href="./myDefaultss4.xsl" ?> -->
+<authors>
+  <author>
+    <name idd="VH">Victor Hugo</name>
+    <nationality>French</nationality>
+  </author>
+  <author period="classical">
+    <name>Sophocles</name>
+    <nationality>Greek</nationality>
+  </author>
+  <author>
+    <name>Leo Tolstoy</name>
+    <nationality>Russian</nationality>
+  </author>
+  <author>
+    <name>Alexander Pushkin</name>
+    <nationality>Russian</nationality>
+  </author>
+  <author period="classical">
+    <name>Plato</name>
+    <nationality>Greek</nationality>
+  </author>
+</authors>

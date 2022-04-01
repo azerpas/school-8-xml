@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<title ID="theTitle">Define/Modify an XSLT Variable</title>
+	<link  rel="stylesheet" type="text/css" href="KeyOrVar.css" > 
+<script>
+	var theDelim  = "\r";
+	var ExistingVariables = window.dialogArguments[0];
+	var mode      = window.dialogArguments[1];
+	var dispName  = window.dialogArguments[2];
+	var dispValue = window.dialogArguments[3];
+	var curFileEnteredExpressions = window.dialogArguments[4];
+	window.returnValue = "";
+	
+</script>
+</head>
+
+<body  onload="init()">
+<table>
+<tr>
+<td>Variable Name:</td> <td><input type="Text" ID="varName" width="300" onchange="onchangeInput()" onkeyup="onInput_KUP()"></td>
+</tr>
+<tr>
+<td>Expression:</td> <td><input type="Text" ID="exprText" size="75" onchange="onchangeInput()" onkeyup="onInput_KUP()">
+<img   align="baseline"  hspace="0" src="combo.jpg" onclick="btnCombo_Click()"/>
+</td>
+</tr>
+</table>
+<hr/>
+&nbsp;<input type="Button" value="Submit" onclick="getData()">
+<div ID="ErrorMsg" class="error"></div>
+<script>
+function init()
+{
+	varName.innerText = dispName;
+	exprText.innerText = dispValue;
+}
+
+function onInput_KUP()
+{
+	onchangeInput();
+	if(event.keyCode == 13)
+		getData();
+}
+
+function getData()
+{
+	window.returnValue = "";
+	
+	var varModified = 0;
+	var name  = document.all("varName").value;
+	var value = document.all("exprText").value;
+	
+	if(name == "" || value == "")
+	{
+		displayError("Both 'Name' and 'Expression' must be entered!");
+		return;
+	}
+	
+	if(mode == "new" || (mode != "new" && name != dispName))
+	{
+		if(isDuplicate(name))
+			if(!confirm("Variable name '" + name +"' already exists. Overwrite?"))
+				return;
+			else
+				varModified = 1;
+	}
+	
+	window.returnValue = name + theDelim + value + theDelim + varModified;
+	window.close();
+}
+
+function btnCombo_Click()
+{
+var vArguments = curFileEnteredExpressions;
+var sFeatures="dialogHeight: " + 400 + "px;" + "dialogWidth: " + 800 + "px;";
+var vReturnValue = window.showModalDialog("expressions.htm", vArguments, sFeatures);
+
+exprText.value = vReturnValue;
+}
+
+var errorDisplayed = false;
+function onchangeInput()
+{
+	if(errorDisplayed)
+	{
+		ErrorMsg.innerText = "";
+		ErrorMsg.style.display="none";
+		errorDisplayed = false;
+	}
+}
+
+function displayError(message)
+{
+	ErrorMsg.style.display="";
+	ErrorMsg.innerText = "Error: " + message;
+	errorDisplayed = true;
+}
+
+function isDuplicate(name)
+{
+	var name1 = name + theDelim; //padded name
+	var name1Length = name1.length;
+	var i;
+	
+	for(i = 0; i < ExistingVariables.length; i++)
+	{
+		var thisEntry = ExistingVariables[i];
+		if(name1 == thisEntry.substr(0, name1Length))
+			return 1;
+	}
+	return 0;
+}
+</script>
+</body>
+</html>

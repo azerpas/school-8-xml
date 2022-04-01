@@ -1,0 +1,9 @@
+	  BODY {background: #99cc99} 
+	  TABLE {border: 0pt lightgrey solid}
+	  TH {background: lightgrey; color: darkred; 
+	      border: 2px lightgrey outset; cursor: default}
+	  TR {background: #ffffcc}
+	  TD {border-right: 2px lightgrey solid; }
+	  .cover {background: white; color: red}
+	  .rover {background: black; color: white}
+	  .select{background: blue; color: white}

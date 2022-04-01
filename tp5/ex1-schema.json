@@ -1,0 +1,74 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Etudiants",
+    "description": "Une liste d'étudiants",
+    "type": "array",
+    "minContains": 3,
+    "items": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer"
+            },
+            "nom": {
+                "type": "string"
+            },
+            "prenom": {
+                "type": "string"
+            },
+            "dateNaissance": {
+                "type": "string",
+                "pattern": "^([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)\\d{2}$"
+            },
+            "lieuNaissance": {
+                "type": "string"
+            },
+            "adresse": {
+                "type": "object",
+                "properties": {
+                    "numRue": {
+                        "type": "integer"
+                    },
+                    "nomRue": {
+                        "type": "string"
+                    },
+                    "codePostal": {
+                        "type": "integer",
+                        "minimum": 10000,
+                        "maximum": 99999 
+                    },
+                    "ville": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "numRue",
+                    "nomRue",
+                    "codePostal",
+                    "ville"
+                ]
+            },
+            "mail": {
+                "type": "string"
+            },
+            "coursSuivis": {
+                "type": "array",
+                "items": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "string"
+                    }
+                ],
+                "minContains": 1
+            }
+        },
+        "required": [
+            "id",
+            "nom",
+            "prenom",
+            "mail"
+        ]
+    }
+}

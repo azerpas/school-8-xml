@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE gifts [
+<!ELEMENT gifts (ModelNumber+)>
+<!ELEMENT ModelNumber (#PCDATA)>
+<!ATTLIST ModelNumber
+               group (gold | red)  "red"
+               dep (gold | red)  "red"
+               prod (gold | red)  "red"
+               location  CDATA    #IMPLIED 
+               ref  CDATA    #IMPLIED 
+               id  ID    #IMPLIED  >
+]>
+
+<gifts>
+  <ModelNumber dep = 'red' group="red" prod="red">P6205 * 1103</ModelNumber>
+  <ModelNumber dep="gold" group="red" prod="gold">P6205</ModelNumber>
+  <ModelNumber dep="gold" group="red" prod="gold">1103</ModelNumber>
+  <ModelNumber group="gold">P6205</ModelNumber>
+  <ModelNumber>1103</ModelNumber>
+</gifts>
+

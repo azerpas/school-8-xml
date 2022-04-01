@@ -1,0 +1,324 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<link  rel="stylesheet" type="text/css" href="table.css" > 
+	<title>Manage XSLT Keys</title>
+</head>
+<script src="table.js"></script>
+<script src="XSLTKeys.js"></script>
+<script>
+	var theArgs = window.dialogArguments;
+	window.returnValue = null;
+	
+	var nodeStylesheet      = theArgs[0];
+	var nodeStylesheetParam = theArgs[1];
+	var ExistingKeys        = theArgs[2];
+	var theStylesheet       = theArgs[3];
+	
+	var numKeys = ExistingKeys.length;
+	
+	var theTable = document.all("theTable");
+	var i;
+	
+	function init()
+	{
+		i = numKeys - 1;
+		
+		if(i < 0)
+			doInsert();
+		else
+		{
+			theTable = document.all("theTable");
+			while(i >= 0)
+			{
+				fillRow(i);
+				i--;
+			}
+		}
+		
+		
+	}
+	
+	function fillRow(i)
+	{
+		var varEntry = ExistingKeys[i];
+		var arrCells = new Array(3);
+		arrCells  = varEntry.split(theDelim);
+		var name  = arrCells[0];
+		var match = arrCells[1];
+		var use   = arrCells[2];
+		theTable.insertRow();
+		
+		var newRow = theTable.rows(theTable.rows.length - 1);
+		
+		var newCell = newRow.insertCell();
+		newCell.innerText = name;
+		newCell = newRow.insertCell();
+		newCell.innerText = match;
+		newCell = newRow.insertCell();
+		newCell.innerText = use;
+		
+	}
+	
+	function doSelect()
+	{
+		if(selectedRow)
+		{
+			window.returnValue = "key('" + selectedRow.cells(0).innerText 
+										+ "', 'some " 
+										+ selectedRow.cells(2).innerText 
+										+ " for " 
+										+ selectedRow.cells(1).innerText 
+										+ " ')";
+			//alert(selectedRow.rowIndex + " row selected.")
+			//alert("varName: " + selectedRow.cells(0).innerText 
+			//+ ", Expression: " + selectedRow.cells(1).innerText)
+		}
+		
+		window.close();
+	}
+	
+	function doModify()
+	{
+		if(!selectedRow)
+		{
+			alert("No row's been selected for update!");
+			return;
+		}
+		
+		var Name  = selectedRow.cells(0).innerText;
+		var Match = selectedRow.cells(1).innerText;
+		var Use   = selectedRow.cells(2).innerText;
+		
+	var theArgs = new Array(5);
+	theArgs[0] = ExistingKeys;
+	theArgs[1] = "existing";		//Mode
+	theArgs[2] = Name;
+	theArgs[3] = Match;
+	theArgs[4] = Use;
+	//theArgs[4] = curFileEnteredExpressions;
+var sFeatures="dialogHeight: " + 220 + "px;" + "dialogWidth: " + 900 + "px;";
+var vReturnValue = window.showModalDialog("newKey.htm", theArgs,
+											 sFeatures);
+		if(vReturnValue == "")
+			return;
+
+		var arrCells = new Array(4);
+		arrCells        = vReturnValue.split(theDelim);
+		var newName        = arrCells[0];
+		var newMatch       = arrCells[1];
+		var newUse         = arrCells[2];
+		var strModified = arrCells[3];
+		var bModified = (strModified != "0");
+
+		var theName;
+		var fullReplace = (newName != Name && !bModified);
+		
+		if(bModified && !fullReplace)
+			doDelete();
+		
+		if(fullReplace)
+		{
+			modifyXSLTKey(Name, newName, newMatch, newUse);
+			theName = Name;
+		}
+		else
+		{											
+			addXSLTKey(newName, newMatch, newUse, true);
+			theName = newName;
+		}
+
+		var table = document.all("theTable");
+		
+		var i;
+		var theRows = table.rows;
+		for(i = 1; i <  theRows.length; i++)
+			if(theRows[i].cells(0).innerText == theName)
+			{
+				theRows[i].cells(1).innerText = newMatch;
+				theRows[i].cells(2).innerText = newUse;
+				
+				if(fullReplace)
+					theRows[i].cells(0).innerText = newName;
+
+				break;
+			}
+		
+		
+		if(bModified)
+			updateKey(newName, newMatch, newUse)
+		else
+			replaceKey(Name, newName, newMatch, newUse);
+	}
+	
+	function doDelete()
+	{
+		if(!selectedRow)
+			alert("No row's been selected for deletion!")
+		else
+		{
+			var table   = document.all("theTable");
+			var varName = selectedRow.cells(0).innerText;
+			var i;
+			
+			for(i = 0; i < numKeys; i++)
+			{
+				var varEntry = ExistingKeys[i];
+				var idx   = varEntry.indexOf(theDelim);
+				
+				if(varName == varEntry.substr(0, idx))
+				{
+					numKeys--;
+					while(i < numKeys)
+					{
+						ExistingKeys[i] = ExistingKeys[i+1];
+						i++;
+					}
+					
+					ExistingKeys[numKeys] = null;
+					ExistingKeys.length--;
+					break;
+				}
+				
+			}
+
+			table.deleteRow(selectedRow.rowIndex);
+			selectedRow = null;
+			
+			deleteXSLTKey(varName);
+		}
+	}
+	
+
+	function doInsert()
+	{
+	var theArgs = new Array(5);
+	theArgs[0] = ExistingKeys;
+	theArgs[1] = "new";		//Mode
+	theArgs[2] = "";
+	theArgs[3] = "";
+	theArgs[4] = "";
+	//theArgs[4] = curFileEnteredExpressions;
+var sFeatures="dialogHeight: " + 220 + "px;" + "dialogWidth: " + 900 + "px;";
+var vReturnValue = window.showModalDialog("newKey.htm", theArgs,
+											 sFeatures);
+		
+		if(vReturnValue == "")
+			return;
+		
+		var arrCells = new Array(4);
+		arrCells        = vReturnValue.split(theDelim);
+		var name        = arrCells[0];
+		var match       = arrCells[1];
+		var use         = arrCells[2];
+		var strModified = arrCells[3];
+
+		var bModified = (strModified != "0");
+														
+		//alert("strModified is: " + strModified);
+		//alert("bModified is: " + bModified);
+		
+		addXSLTKey(name, match, use, bModified);
+		
+		var table = document.all("theTable");
+		if(!bModified)
+		{
+			table.insertRow(1);
+			var newRow = table.rows(1);
+			
+			var newCell = newRow.insertCell();
+			newCell.innerText = name;
+			newCell = newRow.insertCell();
+			newCell.innerText = match;
+			newCell = newRow.insertCell();
+			newCell.innerText = use;
+			
+			ExistingKeys[numKeys] = vReturnValue.substr(0,
+				 vReturnValue.length - theDelim.length - strModified.length);
+			numKeys++;
+		}
+		else //modify the table row
+		{
+			var i;
+			var theRows = table.rows;
+			for(i = 1; i <  theRows.length; i++)
+				if(theRows[i].cells(0).innerText == name)
+				{
+					theRows[i].cells(1).innerText = match;
+					theRows[i].cells(2).innerText = use;
+					break;
+				}
+			
+			updateKey(name, match, use);
+		}
+
+	}
+	
+	function updateKey(name, match, use)
+	{
+		//alert("In updateValue()");
+		var name1 = name + theDelim; //padded name
+		var name1Length = name1.length;
+		var i;
+		
+		for(i = 0; i < ExistingKeys.length; i++)
+		{
+			var thisEntry = ExistingKeys[i];
+			if(name1 == thisEntry.substr(0, name1Length))
+			{
+				ExistingKeys[i] = name1 + match + theDelim + use;
+				//alert("updated Entry: " + thisEntry);
+			}
+		}
+	}
+	
+	function replaceKey(oldName, newName, newMatch, newUse)
+	{
+		var name1 = oldName + theDelim; //padded name
+		var name1Length = name1.length;
+		var i;
+		
+		for(i = 0; i < ExistingKeys.length; i++)
+		{
+			var thisEntry = ExistingKeys[i];
+			if(name1 == thisEntry.substr(0, name1Length))
+			{
+				ExistingKeys[i] = newName + theDelim + newMatch + theDelim + newUse;
+			}
+		}
+	}
+	
+	function doDblClick()
+	{
+		if(selectedRow)
+			doSelect();
+	}
+	
+</script>
+<script FOR = document EVENT = onkeyup>
+	if(event.keyCode != 13)
+		return;
+	if(!selectedRow)
+		alert("No row's been selected!")
+	else
+		doSelect();
+</script> 
+
+<body onload="init()">
+<center>
+<table ID="theTable" ONSELECTSTART="return false" ONMOUSEOVER="checkHighlight(true)"
+ONMOUSEOUT="checkHighlight(false)" onclick="checkSelected()" ondblclick="doDblClick()">
+	<col/><col/><col/>
+	<thead><tr><th>Name</th><th>Match(Pattern)</th><th>Use(Expression)</th></tr></thead>
+	<tbody>
+	</tbody>
+</table>
+<hr/>
+<input type="Button" value="OK" onclick="doSelect()">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="Button" value="New" onclick="doInsert()">
+<input type="Button" value="Modify" onclick="doModify()">
+<input type="Button" value="Delete" onclick="doDelete()">
+</center>
+</body>
+</html>

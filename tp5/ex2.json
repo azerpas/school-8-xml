@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Etudiants",
+    "description": "Une liste d'étudiants",
+    "type": "object",
+    "properties": {
+        "codePerm": {
+            "type": "string"
+        },
+        "nom": {
+            "type": "string"
+        },
+        "prenom": {
+            "type": "string"
+        },
+        "cours": {
+            "type": "array",
+            "items": {
+              	"type": "object",
+            	"properties": {
+                  "credits": {
+                      "type": "integer"
+                  },
+                  "sigle": {
+                      "type": "string"
+                  },
+                  "reprise": {
+                      "type": "boolean"
+                  }
+                },
+                "required": [
+                  "credits",
+                  "sigle"
+            	]
+            },
+            
+        }
+    }
+}
